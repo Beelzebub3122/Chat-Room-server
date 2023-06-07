@@ -1,26 +1,40 @@
+import time
 import socket
-import select
-import sys
 
-server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-if len(sys.argv) != 3:
-    print "Correct usage: script, IP address, port number"
-    exit()
-IP_address = str(sys.argv[1])
-Port = int(sys.argv[2])
-server.connect((IP_address, Port))
+print('Client Server...')
+time.sleep(1)
+
+soc = socket.socket()
+
+# Specify the server's IP address and port number
+server_host = "127.0.0.1"
+port = 1234
+
+print('Trying to connect to the server: {}, ({})'.format(server_host, port))
+time.sleep(1)
+soc.connect((server_host, port))
+print("Connected...\n")
+
+name = input('Enter Client\'s name: ')
+soc.send(name.encode())
+
+server_name = soc.recv(1024)
+server_name = server_name.decode()
+print('{} has joined...'.format(server_name))
+print('Enter [bye] to exit.')
 
 while True:
-    sockets_list = [sys.stdin, server]
-    read_sockets,write_socket, error_socket = select.select(sockets_list, [], [])
-    for socks in read_sockets:
-        if socks == server:
-            message = socks.recv(2048)
-            print message
-        else:
-            message = sys.stdin.readline()
-            server.send(message)
-            sys.stdout.write("<You>")
-            sys.stdout.write(message)
-            sys.stdout.flush()
-server.close()
+  message = soc.recv(1024)
+  message = message.decode()
+  print(server_name, ">", message)
+
+  message = input(str("Me > "))
+
+  if message == "[bye]":
+    message = "Leaving the Chat room"
+    soc.send(message.encode())
+    print("\n")
+    break
+
+  soc.send(message.encode())
+
